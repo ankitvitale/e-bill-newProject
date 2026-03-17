@@ -66,6 +66,8 @@ public class DataSeeder implements ApplicationRunner {
         saveOrUpdateRole("ADMIN","Administration",true);
         saveOrUpdateRole("SUPERADMIN","Application owner",true);
         saveOrUpdateRole("SUBADMIN","Sub Administration",true);
+        saveOrUpdateRole("SALEEMPLOYEE","sale employee",true);
+        saveOrUpdateRole("PURCHASEEMPLOYEE","Purchase employee",true);
      }
 
     private void saveOrUpdateRole(String name,String description,boolean isSystem){

@@ -18,7 +18,9 @@ public class TechgicusEbillingApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(TechgicusEbillingApplication.class, args);
         System.out.println("welcome to new project");
-	}
+
+
+    }
 
 }
 

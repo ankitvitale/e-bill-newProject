@@ -47,45 +47,85 @@ public class AuthService {
     }
 
 
+//    public RegistrationResponse registerAdmin(RegistrationRequest registrationRequest){
+//
+//        if (userRepository.findByEmail(registrationRequest.getEmailId()).isPresent()){
+//            throw new UserAlreadyRegisterException("User alredy exit with email id : "+registrationRequest.getEmailId());
+//        }
+//
+//        Role adminRole = roleRepository.findByRoleName("ADMIN")
+//                .orElseThrow(()-> new ResourceNotFoundException("Role with admin role name is not found"));
+//
+//        User newUser = new User();
+//        newUser.setUserName(registrationRequest.getUserName());
+//        newUser.setEmail(registrationRequest.getEmailId());
+//        newUser.setPassword(passwordEncoder.encode(registrationRequest.getPassword()));
+//        newUser.setCreatedAt(LocalDateTime.now());
+//        newUser.setUpdateAt(LocalDateTime.now());
+//        newUser.setRoles(Set.of(adminRole));
+//
+//        User saveUser = userRepository.save(newUser);
+//
+//        //generate access & refresh token
+//        String accessToken = jwtService.generateAccessToken(saveUser);
+//        String refreshToken = jwtService.generateRefreshToken(saveUser);
+//
+//
+//        //Stored refresh token in DB
+//        refreshTokenService.saveRefreshToken(saveUser,refreshToken);
+//
+//        //Return the token with user data to frontend
+//        RegistrationResponse registrationResponse = new RegistrationResponse();
+//        registrationResponse.setUserId(saveUser.getUserId());
+//        registrationResponse.setUserName(saveUser.getUserName());
+//        registrationResponse.setEmailId(saveUser.getEmail());
+//        registrationResponse.setRoleName(saveUser.getRoles().stream().map(Role::getRoleName).collect(Collectors.toSet()));
+//        registrationResponse.setAccessToken(accessToken);
+//        registrationResponse.setRefreshToken(refreshToken);
+//
+//        return registrationResponse;
+//    }
+
+
     public RegistrationResponse registerAdmin(RegistrationRequest registrationRequest){
 
         if (userRepository.findByEmail(registrationRequest.getEmailId()).isPresent()){
-            throw new UserAlreadyRegisterException("User alredy exit with email id : "+registrationRequest.getEmailId());
+            throw new UserAlreadyRegisterException(
+                    "User already exist with email id : " + registrationRequest.getEmailId());
         }
 
-        Role adminRole = roleRepository.findByRoleName("ADMIN")
-                .orElseThrow(()-> new ResourceNotFoundException("Role with admin role name is not found"));
+        Set<Role> userRoles = registrationRequest.getRoles().stream()
+                .map(roleName -> roleRepository.findByRoleName(roleName)
+                        .orElseThrow(() ->
+                                new ResourceNotFoundException("Role not found: " + roleName)))
+                .collect(Collectors.toSet());
 
         User newUser = new User();
         newUser.setUserName(registrationRequest.getUserName());
         newUser.setEmail(registrationRequest.getEmailId());
         newUser.setPassword(passwordEncoder.encode(registrationRequest.getPassword()));
-        newUser.setCreatedAt(LocalDateTime.now());
-        newUser.setUpdateAt(LocalDateTime.now());
-        newUser.setRoles(Set.of(adminRole));
+        newUser.setRoles(userRoles);
 
-        User saveUser = userRepository.save(newUser);
+        User savedUser = userRepository.save(newUser);
 
-        //generate access & refresh token
-        String accessToken = jwtService.generateAccessToken(saveUser);
-        String refreshToken = jwtService.generateRefreshToken(saveUser);
+        String accessToken = jwtService.generateAccessToken(savedUser);
+        String refreshToken = jwtService.generateRefreshToken(savedUser);
 
+        refreshTokenService.saveRefreshToken(savedUser, refreshToken);
 
-        //Stored refresh token in DB
-        refreshTokenService.saveRefreshToken(saveUser,refreshToken);
+        RegistrationResponse response = new RegistrationResponse();
+        response.setUserId(savedUser.getUserId());
+        response.setUserName(savedUser.getUserName());
+        response.setEmailId(savedUser.getEmail());
+        response.setRoleName(savedUser.getRoles()
+                .stream()
+                .map(Role::getRoleName)
+                .collect(Collectors.toSet()));
+        response.setAccessToken(accessToken);
+        response.setRefreshToken(refreshToken);
 
-        //Return the token with user data to frontend
-        RegistrationResponse registrationResponse = new RegistrationResponse();
-        registrationResponse.setUserId(saveUser.getUserId());
-        registrationResponse.setUserName(saveUser.getUserName());
-        registrationResponse.setEmailId(saveUser.getEmail());
-        registrationResponse.setRoleName(saveUser.getRoles().stream().map(Role::getRoleName).collect(Collectors.toSet()));
-        registrationResponse.setAccessToken(accessToken);
-        registrationResponse.setRefreshToken(refreshToken);
-
-        return registrationResponse;
+        return response;
     }
-
 
     public LoginResponse login(LoginRequest loginRequest){
 

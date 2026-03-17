@@ -4,6 +4,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 
+import java.util.Set;
+
 
 @Schema
 public class RegistrationRequest {
@@ -21,6 +23,7 @@ public class RegistrationRequest {
     @Schema(example = "Payal@123")
     private String password;
 
+    private Set<String> roles;
     public RegistrationRequest() {
     }
 
@@ -52,5 +55,13 @@ public class RegistrationRequest {
 
     public void setPassword(@NotBlank(message = "password can not be null or blank.") String password) {
         this.password = password;
+    }
+
+    public Set<String> getRoles() {
+        return roles;
+    }
+
+    public void setRoles(Set<String> roles) {
+        this.roles = roles;
     }
 }
